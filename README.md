@@ -1,5 +1,3 @@
-# Taiwan-Motor-Vehicle-Freight-Traffic
-
 # 📦 台灣貨運數據分析（Taiwan Freight Data Analysis）
 
 ## 📌 介紹（Introduction）
