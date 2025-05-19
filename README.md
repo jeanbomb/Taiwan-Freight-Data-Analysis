@@ -1,6 +1,9 @@
 # 📦 Taiwan Freight Data Analysis / 台灣貨運數據分析
 
-📌 [English Version](#english-version) | [中文版](#中文版)
+<a id="top"></a>
+
+📌 [English Version](#english-version) | [日本語](#japanese-version) | [中文版](#中文版)
+
 
 ---
 
@@ -104,7 +107,6 @@ After cleaning the dataset, I used **Power BI** to visualize key trends:
 ![image](https://github.com/user-attachments/assets/f0ccffbe-4172-4eb9-96c3-17eed4ce1874)
 ![image](https://github.com/user-attachments/assets/a846271b-08a3-4146-98d1-ae144e2ae54c)
 
-
 [🔺 Back to Top](#top)  
 
 ---
@@ -114,6 +116,118 @@ I utilized **[Taiwan Government Open Data](https://data.gov.tw/dataset/6307)** f
 Feel free to submit **issues** or **pull requests** for improvements!
 
 [🔺 Back to Top](#top)  
+
+---
+
+# 🇯🇵 日本語版 <a id="japanese-version"></a>
+
+### 📌 プロジェクト概要
+**[台湾政府オープンデータ](https://data.gov.tw/dataset/6307)** を用いて、台湾の **2023年貨物データ** を分析しました。**Pythonでデータの前処理** を行い、**Power BIで可視化** しています。
+
+### 📄 含まれるファイル
+- `data_dictionary.csv` → 物流変数マッピング  
+- `cleaned_logistics_data.csv` → 前処理済みデータセット  
+- `logistics_data_renamed.csv` → 列名をリネームしたデータセット  
+- `logistics_data_transformed.csv` → 値をマッピングした変換済みデータセット  
+
+[🔺 一番上に戻る](#top)  
+
+---
+
+## 💡 **ステップ1️⃣: Pythonによるデータ前処理**
+**Python & Pandas** を使用して物流データセットをクリーニングおよび前処理しました。
+
+### **1️⃣ 生データの読み込み**
+2つのデータセットを読み込みます:
+- **変数辞書 (`data_dictionary.csv`)** → 変数コードを読みやすい名前に翻訳するために使用
+- **貨物データ (`logistics_data.csv`)** → 2023年の輸送記録を含む
+
+```python
+import pandas as pd
+
+# データセットの読み込み
+df_dict = pd.read_csv("data_dictionary.csv", encoding="cp950")
+df_data = pd.read_csv("logistics_data.csv", encoding="latin1")
+
+# データ構造をプレビュー
+print(df_dict.head())
+print(df_data.head())
+```
+
+### **2️⃣ 欠損値の処理**
+✅ **欠損値が90%以上の列を削除**  
+✅ **数値型は平均値、カテゴリ型は最頻値で欠損値を補完**  
+
+```python
+# 欠損値が多い列を削除
+df_data_cleaned = df_data.dropna(axis=1, how="all")
+
+# 数値型の欠損値を平均値で補完
+df_data_cleaned["distqty"] = df_data_cleaned["distqty"].fillna(df_data_cleaned["distqty"].mean())
+
+# カテゴリ型の欠損値を最頻値で補完
+df_data_cleaned["dtcityt"] = df_data_cleaned["dtcityt"].fillna(df_data_cleaned["dtcityt"].mode()[0])
+```
+
+### **3️⃣ 変数名をデータ辞書でリネーム**
+元のデータセットはコード化された変数名を使用しているため、`data_dictionary.csv` のマッピングを使ってリネームしました。
+
+```python
+# 辞書からマッピングを作成
+variable_mapping = dict(zip(df_dict["變數名稱"], df_dict["變數內容"]))
+
+# 列名をリネーム
+df_data_renamed = df_data_cleaned.rename(columns=variable_mapping)
+```
+
+### **4️⃣ 数値コードを意味のあるラベルに変換**
+一部の値は数値コードでカテゴリを表しているため（例：都市コード、商品ID）、人間が読めるラベルにマッピングしました。
+
+```python
+# 商品コードを名称にマッピング
+product_mapping = dict(zip(df_dict["商品編號數值"], df_dict["內容"]))
+df_data_renamed["商品編號"] = df_data_renamed["商品編號"].map(product_mapping)
+
+# 都市コードを実際の地名にマッピング
+city_mapping = dict(zip(df_dict["裝卸貨地點數值"], df_dict["內容"]))
+df_data_renamed["裝貨地點"] = df_data_renamed["裝貨地點"].map(city_mapping)
+df_data_renamed["卸貨地點"] = df_data_renamed["卸貨地點"].map(city_mapping)
+```
+
+### **最終ステップ: 前処理データの保存**
+前処理後、Power BIでの可視化のためにデータセットを書き出しました。
+
+```python
+df_data_renamed.to_csv("logistics_data_transformed.csv", index=False)
+print("データを 'logistics_data_transformed.csv' に保存しました")
+```
+
+[🔺 一番上に戻る](#top)  
+
+---
+
+## 📊 **ステップ2️⃣: Power BIによる可視化**
+データクリーニング後、**Power BI** を使って主な傾向を可視化しました:
+
+✅ **地域別の貨物分布** → 運送フローの地図表示  
+✅ **貨物ホットスポット** → 輸送量の多いエリアの特定  
+✅ **商品タイプ別の輸送量** → 各商品の輸送内訳  
+✅ **輸送距離と運賃の傾向** → コスト変動の分析  
+
+🔹 **Power BI ダッシュボードのスクリーンショット**:  
+![Power BI Dashboard]
+![image](https://github.com/user-attachments/assets/f0ccffbe-4172-4eb9-96c3-17eed4ce1874)
+![image](https://github.com/user-attachments/assets/a846271b-08a3-4146-98d1-ae144e2ae54c)
+
+[🔺 一番上に戻る](#top)  
+
+---
+
+## 📜 ライセンス & コントリビューション
+本プロジェクトは **[台湾政府オープンデータ](https://data.gov.tw/dataset/6307)** を利用しています。  
+改善のための **Issue** や **Pull Request** を歓迎します！
+
+[🔺 一番上に戻る](#top)  
 
 ---
 
@@ -225,3 +339,4 @@ print("數據成功儲存為 'logistics_data_transformed.csv'")
 
 [🔺 返回最上面](#top)  
 
+---
